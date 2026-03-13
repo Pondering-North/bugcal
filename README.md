@@ -1,21 +1,19 @@
-# 🪲 BugCal
+This is a bug-themed calendar made for personal use, created with Claude AI and powered by AI agents.
 
-A bug-themed personal calendar with AI-powered scheduling agents.
-
-**Features**
-- Monthly calendar grid with event creation, editing, and deletion
-- Recurring events — daily, weekly, biweekly, monthly, yearly, or custom weekdays
-- Flexible repeat endings — infinite, by date, or by occurrence count
-- Natural language event entry ("standup every Mon/Wed/Fri at 9am")
-- Conflict detection agent — warns when new events overlap existing ones
-- Holiday grounding agent — verifies US federal holiday dates via web search
-- Events persist in `localStorage` across sessions
+It features:
+- Event creation through a manual system and/or a natural language event entry
+- The ability to schedule recurrent reminders at a specific time
+- The ability to adjust how long the event goes and when it ends 
+- A conflict detection agent
+- An Agent that verifies US holidays via web search.
+- Voice command
+- Filtering
 
 ---
 
-## Running locally
+**How to run locally**
 
-**Prerequisites:** Node.js 18+
+(Requires Node.js 18+)
 
 ```bash
 # 1. Install dependencies
@@ -35,9 +33,7 @@ npm run preview
 
 ---
 
-## Deploying
-
-### GitHub Pages (free, easy)
+## How to deploy (github)
 
 ```bash
 npm run build
@@ -50,7 +46,7 @@ npx gh-pages -d dist
 
 Make sure `base: './'` stays in `vite.config.js` — this ensures assets load correctly from a subfolder.
 
-### Netlify / Vercel
+### Loading on Netifly/Vercel
 
 Connect your repo and set:
 - **Build command:** `npm run build`
@@ -60,7 +56,7 @@ Both platforms auto-deploy on every push to `main`.
 
 ---
 
-## Embedding in your website (demo mode)
+## Embed in website as a demo
 
 ### Step 1 — Build the embed bundle
 
@@ -83,8 +79,6 @@ Upload `dist-embed/bugcal.embed.js` to your server, CDN, or any static host.
 <script type="module" src="/assets/bugcal.embed.js"></script>
 ```
 
-That's it — no build tools, no React, no dependencies needed on the host page. The bundle is fully self-contained.
-
 **Alternative mount target** (if `bugcal-root` conflicts with your existing IDs):
 
 ```html
@@ -94,7 +88,7 @@ That's it — no build tools, no React, no dependencies needed on the host page.
 
 ### Iframe embed (zero-conflict option)
 
-If you want complete style isolation from your site's CSS:
+If wanting isolation from CSS:
 
 ```html
 <iframe
@@ -132,7 +126,7 @@ headers: {
 },
 ```
 
-> ⚠️ **Never commit your API key.** `.env` is already in `.gitignore`. For production, use a small backend proxy instead of exposing the key in the browser bundle.
+> `.env` is already in `.gitignore`. For production, use a small backend proxy instead of exposing the key in the browser bundle.
 
 ---
 
