@@ -1,0 +1,24 @@
+{
+  "name": "bugcal",
+  "version": "1.0.0",
+  "description": "A bug-themed personal calendar with AI scheduling agents",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "build:lib": "vite build --config vite.lib.config.js",
+    "start": "node server.js",
+    "build:start": "npm run build && npm run start",
+    "deploy-embed": "vite build --config vite.lib.config.js && cp dist-embed/bugcal.embed.js ../bugcal_embed.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^7.3.1"
+  }
+}
