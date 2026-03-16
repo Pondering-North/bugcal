@@ -2,6 +2,7 @@ import express from 'express'
 import { createServer } from 'http'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
+import nodemailer from 'nodemailer'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const app = express()
@@ -17,6 +18,17 @@ app.use((req, res, next) => {
   if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
 });
+
+// ── SMTP Email reminder ────────────────────────────────────────────────────
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,        // e.g. smtp.your-relay-provider.com
+  port: Number(process.env.SMTP_PORT) || 587,
+  secure: false,                       // true for port 465, false for 587 (STARTTLS)
+  auth: {
+    user: process.env.SMTP_USER,       // 303computing@303computing.ai
+    pass: process.env.SMTP_PASS,       // your relay password / API key
+  },
+})
 
 // ── Anthropic API proxy ────────────────────────────────────────────────────
 // The frontend calls /api/messages instead of api.anthropic.com directly.
@@ -44,6 +56,28 @@ app.post('/api/messages', async (req, res) => {
   } catch (err) {
     console.error('Anthropic proxy error:', err)
     res.status(502).json({ error: 'Failed to reach Anthropic API' })
+  }
+})
+
+app.post('/api/send-reminder', async (req, res) => {
+  const { to, subject, body } = req.body
+
+  if (!to || !subject || !body) {
+    return res.status(400).json({ error: 'Missing to, subject, or body' })
+  }
+
+  try {
+    await transporter.sendMail({
+      from: '"BugCal" <303computing@303computing.ai>',
+      to,
+      subject,
+      text: body,
+      html: `<div style="font-family:sans-serif;max-width:480px">${body.replace(/\n/g,'<br>')}</div>`,
+    })
+    res.json({ success: true })
+  } catch (err) {
+    console.error('SMTP error:', err)
+    res.status(502).json({ error: 'Failed to send email', detail: err.message })
   }
 })
 
