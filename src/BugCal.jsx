@@ -710,6 +710,7 @@ function EventForm({ initial = {}, allEvents = [], onSave, onDelete, defaultTz =
       <div style={{ display: "flex", gap: 9, marginTop: 6, flexWrap: "wrap" }}>
         <Btn onClick={() => { if (f.title && f.date) onSave(f); }}>🪲 Save</Btn>
         {onDelete && <Btn variant="danger" onClick={onDelete}>🗑 Delete</Btn>}
+        <Btn variant="ghost" onClick={() => sendReminder(f)}>🔔 Send Reminder</Btn>
       </div>
       {(!f.title || !f.date) && <div style={{ fontSize: 11, color: C.muted, marginTop: 5, fontFamily: "monospace" }}>Title and date required.</div>}
     </div>
