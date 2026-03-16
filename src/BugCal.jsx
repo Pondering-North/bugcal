@@ -44,7 +44,7 @@ function expandForMonth(evs, vy, vm) { const r = {}, days = getDays(vy, vm); for
 
 // ✅ Fixed — routes through the backend proxy
 async function aiCall(system, userMsg, extra = {}) {
-  const res = await fetch("https://bugcal-513255025979.us-central1.run.app/api/messages", {
+  const res = await fetch("/api/messages", {
     method: "POST",
     headers: { "Content-Type": "application/json" },  // ← no API key needed
     body: JSON.stringify({
