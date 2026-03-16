@@ -62,7 +62,6 @@ async function aiCall(system, userMsg, extra = {}) {
   }
 
   return data.content?.map(c => c.text || "").join("").trim() || "";
-  }
 
   // Send reminder email for event
   async function sendReminder(event) {
