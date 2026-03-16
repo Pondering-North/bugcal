@@ -39,6 +39,8 @@ app.post('/api/messages', async (req, res) => {
     return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured on server' })
   }
 
+    console.log('Request body:', JSON.stringify(req.body).slice(0, 300))  // ADD THIS
+
   try {
     const upstream = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -52,6 +54,7 @@ app.post('/api/messages', async (req, res) => {
     })
 
     const data = await upstream.json()
+      console.log('Anthropic response:', JSON.stringify(data).slice(0, 300))  // ADD THIS
     res.status(upstream.status).json(data)
   } catch (err) {
     console.error('Anthropic proxy error:', err)
