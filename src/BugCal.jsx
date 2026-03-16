@@ -62,6 +62,30 @@ async function aiCall(system, userMsg, extra = {}) {
   }
 
   return data.content?.map(c => c.text || "").join("").trim() || "";
+  }
+
+  // Send reminder email for event
+  async function sendReminder(event) {
+    const email = window.prompt("Enter your email address for the reminder:");
+    if (!email) return;
+    const body = `Reminder: ${event.title}${event.date ? `\nDate: ${fmtDate(event.date)}` : ""}${event.time ? `\nTime: ${event.time}` : ""}${event.note ? `\nNotes: ${event.note}` : ""}`;
+    try {
+      const res = await fetch("/api/send-reminder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: email,
+          subject: `🪲 BugCal Reminder: ${event.title}`,
+          body
+        })
+      });
+      const data = await res.json();
+      if (data.success) window.alert("✅ Reminder sent to " + email);
+      else window.alert("❌ Failed to send: " + (data.error || "Unknown error"));
+    } catch (err) {
+      window.alert("❌ Something went wrong. Please try again.");
+    }
+  }
 }
 
 // ── Existing Agents ────────────────────────────────────────────────────────
@@ -818,7 +842,14 @@ function AgendaView({ events, holidays, todayKey, onAdd, onClickEvent, daysAhead
                     <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", marginTop: 2 }}>{ev.time ? `${ev.time}${ev.endTime ? ` – ${ev.endTime}` : ""} · ` : "All day · "}{ev.repeat && ev.repeat !== "none" ? "↻ · " : ""}{ev.timezone || ""}</div>
                     {ev.note && <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", marginTop: 1, fontStyle: "italic" }}>{ev.note}</div>}
                   </div>
-                  {ev.reminderEnabled !== false && <span style={{ fontSize: 11, opacity: .4, flexShrink: 0 }}>🔔</span>}
+                  {ev.reminderEnabled !== false && (
+                    <button
+                      onClick={e => { e.stopPropagation(); sendReminder(ev); }}
+                      style={{ background: "none", border: `1px solid ${C.border}`, borderRadius: 5, padding: "2px 7px", fontSize: 10, color: C.muted, cursor: "pointer", fontFamily: "monospace", flexShrink: 0 }}
+                    >
+                      🔔 Remind me
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
