@@ -899,23 +899,77 @@ function TimezonePanel({ onClose, defaultTz, onSetDefault }) {
   );
 }
 
-function ReminderSettingsPanel({ settings, onChange, onClose, onReqPerm, permStatus }) {
+function ReminderSettingsPanel({ settings, onChange, onClose, onReqPerm, permStatus, events }) {
+  const [email, setEmail] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState("");
+
+  const sendAll = async () => {
+    if (!email) return;
+    setSending(true); setSent("");
+    const upcoming = events.filter(ev => ev.date >= new Date().toISOString().split("T")[0]).slice(0, 10);
+    try {
+      const body = upcoming.length
+        ? upcoming.map(ev => `• ${ev.title} — ${fmtDate(ev.date)}${ev.time ? " at " + ev.time : ""}`).join("\n")
+        : "No upcoming events scheduled.";
+      const res = await fetch("/api/send-reminder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: email,
+          subject: "🪲 BugCal — Your Upcoming Events",
+          body: `Here are your upcoming events:\n\n${body}`
+        })
+      });
+      const data = await res.json();
+      setSent(data.success ? "✅ Reminder sent!" : "❌ " + (data.error || "Failed"));
+    } catch { setSent("❌ Something went wrong."); }
+    setSending(false);
+  };
+
   return (
     <Modal title="Reminders" icon="🔔" onClose={onClose}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-        <div><div style={{ color: C.text, fontFamily: "monospace", fontSize: 13 }}>Enable Reminders</div><div style={{ color: C.muted, fontFamily: "monospace", fontSize: 10, marginTop: 2 }}>Browser notifications for events</div></div>
+        <div>
+          <div style={{ color: C.text, fontFamily: "monospace", fontSize: 13 }}>Enable Reminders</div>
+          <div style={{ color: C.muted, fontFamily: "monospace", fontSize: 10, marginTop: 2 }}>Browser notifications for events</div>
+        </div>
         <Toggle on={settings.enabled} onToggle={() => onChange({ ...settings, enabled: !settings.enabled })} />
       </div>
       {settings.enabled && <>
         <FS label="DEFAULT LEAD TIME" value={settings.minutesBefore} onChange={e => onChange({ ...settings, minutesBefore: Number(e.target.value) })}>
-          <option value={5}>5 min before</option><option value={10}>10 min before</option><option value={15}>15 min before</option><option value={30}>30 min before</option><option value={60}>1 hour before</option><option value={1440}>1 day before</option>
+          <option value={5}>5 min before</option>
+          <option value={10}>10 min before</option>
+          <option value={15}>15 min before</option>
+          <option value={30}>30 min before</option>
+          <option value={60}>1 hour before</option>
+          <option value={1440}>1 day before</option>
         </FS>
         <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: 11, marginBottom: 11 }}>
           <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", marginBottom: 7, letterSpacing: .5 }}>BROWSER PERMISSION</div>
-          {permStatus === "granted" ? <div style={{ color: C.accent, fontSize: 12, fontFamily: "monospace" }}>✅ Notifications enabled</div> : permStatus === "denied" ? <div style={{ color: C.danger, fontSize: 12, fontFamily: "monospace" }}>❌ Blocked in browser settings</div> : <div><div style={{ color: C.muted, fontSize: 12, fontFamily: "monospace", marginBottom: 7 }}>Permission not yet granted.</div><Btn onClick={onReqPerm} small>🔔 Allow</Btn></div>}
+          {permStatus === "granted"
+            ? <div style={{ color: C.accent, fontSize: 12, fontFamily: "monospace" }}>✅ Notifications enabled</div>
+            : permStatus === "denied"
+              ? <div style={{ color: C.danger, fontSize: 12, fontFamily: "monospace" }}>❌ Blocked in browser settings</div>
+              : <div><div style={{ color: C.muted, fontSize: 12, fontFamily: "monospace", marginBottom: 7 }}>Permission not yet granted.</div><Btn onClick={onReqPerm} small>🔔 Allow</Btn></div>}
         </div>
       </>}
-      <div style={{ color: C.muted, fontSize: 11, fontFamily: "monospace", lineHeight: 1.6 }}>Per-event reminders can be set individually when creating each event.</div>
+
+      {/* Email reminder section */}
+      <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 14, marginTop: 4 }}>
+        <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", marginBottom: 8, letterSpacing: .5 }}>📧 EMAIL REMINDER</div>
+        <FI
+          label="YOUR EMAIL"
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          placeholder="you@email.com"
+        />
+        <Btn onClick={sendAll} style={{ width: "100%" }}>
+          {sending ? "🔄 Sending..." : "📧 Send My Upcoming Events"}
+        </Btn>
+        {sent && <div style={{ marginTop: 8, fontSize: 12, fontFamily: "monospace", color: sent.startsWith("✅") ? C.accent : C.danger }}>{sent}</div>}
+      </div>
     </Modal>
   );
 }
@@ -1097,7 +1151,7 @@ export default function BugCalendar() {
       {/* Modals */}
       {showSearch && <SearchPanel events={events} initialQuery={searchQuery} onClickEvent={ev => openEdit(ev, ev.date)} onClose={() => setShowSearch(false)} />}
       {showTz && <TimezonePanel onClose={() => setShowTz(false)} defaultTz={userTz} onSetDefault={updateTz} />}
-      {showReminder && <ReminderSettingsPanel settings={reminderSettings} onChange={updateRS} onClose={() => setShowReminder(false)} onReqPerm={reqPerm} permStatus={notifPerm} />}
+      {showReminder && <ReminderSettingsPanel settings={reminderSettings} onChange={updateRS} onClose={() => setShowReminder(false)} onReqPerm={reqPerm} permStatus={notifPerm} events={events} />}
       {holModal && <Modal title="Holiday" icon="🎉" onClose={() => setHolModal(null)}><div style={{ fontSize: 20, color: C.amber, marginBottom: 8, fontWeight: "bold" }}>{holModal.holiday.name}</div><div style={{ fontFamily: "monospace", fontSize: 12, color: C.muted }}>{holModal.dateKey}</div></Modal>}
       {modal && (
         <Modal title={modal.mode === "edit" ? "Edit Event" : "New Event"} icon={modal.mode === "edit" ? "✏️" : "🌿"} wide onClose={() => setModal(null)}>
