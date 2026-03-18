@@ -10,11 +10,13 @@ const PORT = process.env.PORT || 8080   // Cloud Run injects PORT
 
 app.use(express.json({ limit: '2mb' }))
 
-// ── CORS — allow portfolio to call this server ─────────────────────────────
+// ── CORS + framing — allow portfolio to call and embed this server ──────────
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', 'https://programportfolio.vercel.app');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   res.header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+  // Allow any site to embed this app in an iframe (public portfolio demo)
+  res.header('Content-Security-Policy', "frame-ancestors *");
   if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
 });
@@ -39,8 +41,6 @@ app.post('/api/messages', async (req, res) => {
     return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured on server' })
   }
 
-    console.log('Request body:', JSON.stringify(req.body).slice(0, 300))  // ADD THIS
-
   try {
     const upstream = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -54,7 +54,6 @@ app.post('/api/messages', async (req, res) => {
     })
 
     const data = await upstream.json()
-      console.log('Anthropic response:', JSON.stringify(data).slice(0, 300))  // ADD THIS
     res.status(upstream.status).json(data)
   } catch (err) {
     console.error('Anthropic proxy error:', err)
