@@ -10,7 +10,8 @@
     "build:lib": "vite build --config vite.lib.config.js",
     "start": "node server.js",
     "build:start": "npm run build && npm run start",
-    "deploy-embed": "vite build --config vite.lib.config.js && cp dist-embed/bugcal.embed.js ../bugcal_embed.js"
+    "deploy-embed": "vite build --config vite.lib.config.js && cp dist-embed/bugcal.embed.js ../bugcal_embed.js",
+    "test": "node test-harness.js"
   },
   "dependencies": {
     "express": "^4.19.2",

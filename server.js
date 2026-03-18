@@ -21,12 +21,12 @@ app.use((req, res, next) => {
 
 // ── SMTP Email reminder ────────────────────────────────────────────────────
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,        // e.g. smtp.your-relay-provider.com
-  port: Number(process.env.SMTP_PORT) || 587,
-  secure: false,                       // true for port 465, false for 587 (STARTTLS)
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,   // true for 465
   auth: {
-    user: process.env.SMTP_USER,       // 303computing@303computing.ai
-    pass: process.env.SMTP_PASS,       // your relay password / API key
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
   },
 })
 
@@ -85,7 +85,7 @@ app.post('/api/send-reminder', async (req, res) => {
 })
 
 // ── Health check (Cloud Run uses this) ────────────────────────────────────
-app.get('/healthz', (_req, res) => res.json({ status: 'ok' }))
+app.get('/health', (_req, res) => res.json({ status: 'ok' }))
 
 // ── Serve the Vite build ───────────────────────────────────────────────────
 const distPath = join(__dirname, 'dist')
